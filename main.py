@@ -64,7 +64,7 @@ clock = pygame.time.Clock()
 
 # Tank specs, movements and collision
 class AbstractTank:
-    IMG = MULTIPLA
+    IMG = M48A1
 
     def __init__(self, vmax, vrotation, start_pos):
         self.img = self.IMG
@@ -139,14 +139,14 @@ def move_player(tank):
     keys = pygame.key.get_pressed()
     moved = False
 
-    if keys[pygame.K_q]:
+    if keys[pygame.K_q] or keys[pygame.K_LEFT]:
         tank.rotate(left=True)
-    if keys[pygame.K_d]:
+    if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
         tank.rotate(right=True)
-    if keys[pygame.K_z]:
+    if keys[pygame.K_z] or keys[pygame.K_UP]:
         moved = True
         tank.forward()
-    if keys[pygame.K_s]:
+    if keys[pygame.K_s] or keys[pygame.K_DOWN]:
         moved = True
         tank.braking()
 

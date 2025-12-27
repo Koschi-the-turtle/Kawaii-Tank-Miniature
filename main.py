@@ -9,24 +9,28 @@ pygame.init()
 pygame.mixer.init()
 
 BOUNCE_SOUND = [
-    pygame.mixer.sound("collision_sound1.mp3"),
-    pygame.mixer.sound("collision_sound2.mp3"),
-    pygame.mixer.sound("collision_sound3.mp3"),
+    pygame.mixer.Sound("collision_sound1.mp3"),
+    pygame.mixer.Sound("collision_sound2.mp3"),
+    pygame.mixer.Sound("collision_sound3.mp3"),
 ]
 
 FINISH_SOUND = [
-    pygame.mixer.sound("finish_sound1.mp3"),
-    pygame.mixer.sound("finish.sound2.mp3"),
-    pygame.mixer.sound("finish.sound3.mp3"),
+    pygame.mixer.Sound("finish_sound1.mp3"),
+    pygame.mixer.Sound("finish_sound2.mp3"),
+    pygame.mixer.Sound("finish_sound3.mp3"),
 ]
 
-for s in BOUNCE_SOUND or FINISH_SOUND:
-    s.set_volume(0.5)
+for s in BOUNCE_SOUND:
+    s.set_volume(0.7)
+for s in FINISH_SOUND:
+    s.set_volume(0.4)
+
 
 
 FONT = pygame.font.SysFont("Gadugi", 18)
 FONT2 = pygame.font.SysFont("Gadugi",28)
-PINK = (255, 180, 200)
+FONT3 = pygame.font.SysFont("Comic Sans MS", 22)
+PINK = (255, 150, 235)
 GREEN = (70, 255, 200)
 YELLOW = (255, 230, 50)
 WHITE = (255, 245, 252)
@@ -125,7 +129,7 @@ class AbstractTank:
         self.move()
         self.nya_until = time.time() + 0.5
         now = time.time()
-        if now - self.last_bounce > 0.1:
+        if now - self.last_bounce_sound > 0.1:
             random.choice(BOUNCE_SOUND).play()
             self.last_bounce_sound = now
 
@@ -161,6 +165,12 @@ class PlayerTank(AbstractTank):
 
         self.timer_flash_color = (255, 255, 255)
         self.timer_flash_until = 0
+
+        self.nya_until = time.time() + 0.5
+        self.last_bounce_sound = 0
+
+        self.sector_sound_played = False
+        
 
 
 # Player inputs
@@ -201,23 +211,26 @@ def draw_timer(win, player):
 
 # Draw
 def draw(win, tank):
-    win.blit(TRACK, (0, 0))
+
+    shake_x = random.randint(-2, 2) if player.last_bounce_sound > time.time() - 0.1 else 0
+    shake_y = random.randint(-2, 2) if player.last_bounce_sound > time.time() - 0.1 else 0
+    win.blit(TRACK, (shake_x, shake_y))
     win.blit(FINISH, FINISH_POS)
     win.blit(TRACK_LIMIT, (0, 0))
-    tank.draw(win)
+
     pygame.draw.rect(win, DARK, (5, 5, 140, 140))
     pygame.draw.rect(win, WHITE, (5, 5, 140, 140), 2)
     pygame.draw.rect(win, DARK, (810, 10, 920, 40))
     draw_timer(win, tank)
     pygame.draw.rect(win, WHITE, (810, 10, 200, 40), 2)
 
-    shake_x = random.randint(-2, 2) if player.last_bounce_sound > time.time() - 0.1 else 0
-    shake_y = random.randint(-2, 2) if player.last_bounce_sound > time.time() - 0.1 else 0
-    win.blit(TRACK, (shake_x, shake_y))
+
 
     if time.time() < player.nya_until:
-        txt = FONT2.render("NYA~!", True, ( 120, 170, 230))
-        win.blit(txt, (player.x + 10, player.y + 20))
+        txt = FONT3.render("NYA~!", True, PINK)
+        win.blit(txt, (player.x + 35, player.y -15))
+    
+    tank.draw(win)
 
     y = 6
 
@@ -236,7 +249,7 @@ def draw(win, tank):
     for i, sector_time in enumerate(tank.current_sectors):
         color = WHITE
         if i< len(tank.best_sectors):
-            color = GREEN and random.choice(FINISH_SOUND).play() if sector_time<= tank.best_sectors[i] else YELLOW
+            color = GREEN if sector_time <= tank.best_sectors[i] else YELLOW
         
         txt = FONT.render(f"S{i+1}: {sector_time:.2f}s", True, color)
         win.blit(txt, (10, y))
@@ -292,6 +305,10 @@ while running:
             player.timer_flash_color = GREEN if better else YELLOW
             player.timer_flash_until = time.time() + 0.6
 
+            if better and not player.sector_sound_played:
+                random.choice(FINISH_SOUND).play()
+                player.sector_sound_played = True
+
             # compare to best sector
             if len(player.best_sectors) <= player.next_checkpoint:
                 player.best_sectors.append(sector_time)
@@ -304,6 +321,7 @@ while running:
             player.sector_start_time = now
             player.next_checkpoint += 1
             player.on_zone = True
+            player.sector_sound_played = False
 
 
 
@@ -327,6 +345,9 @@ while running:
         player.last_lap_time = lap_time
         if player.best_lap_time is None or lap_time < player.best_lap_time:
             player.best_lap_time = lap_time
+            random.choice(FINISH_SOUND).play()
+            player.sector_sound_played = True
+            
 
         # reset for next lap    
         player.lap += 1

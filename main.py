@@ -1,15 +1,36 @@
 import pygame
 import math
 import time
+import random
 from Utils import scale_image, blit_rotate_center
 
 pygame.init()
 
+pygame.mixer.init()
+
+BOUNCE_SOUND = [
+    pygame.mixer.sound("collision_sound1.mp3"),
+    pygame.mixer.sound("collision_sound2.mp3"),
+    pygame.mixer.sound("collision_sound3.mp3"),
+]
+
+FINISH_SOUND = [
+    pygame.mixer.sound("finish_sound1.mp3"),
+    pygame.mixer.sound("finish.sound2.mp3"),
+    pygame.mixer.sound("finish.sound3.mp3"),
+]
+
+for s in BOUNCE_SOUND or FINISH_SOUND:
+    s.set_volume(0.5)
+
+
 FONT = pygame.font.SysFont("Gadugi", 18)
 FONT2 = pygame.font.SysFont("Gadugi",28)
-GREEN = (0, 255, 0)
-YELLOW = (255, 255, 0)
-WHITE = (255, 255, 255)
+PINK = (255, 180, 200)
+GREEN = (70, 255, 200)
+YELLOW = (255, 230, 50)
+WHITE = (255, 245, 252)
+DARK = (10, 5, 10)
 
 # load track and limits
 TRACK = scale_image(pygame.image.load("track.png"), 1.5)
@@ -74,6 +95,7 @@ class AbstractTank:
         self.angle = 65
         self.x, self.y = start_pos
         self.acceleration = 0.08
+        self.last_bounce_sound = 0
 
     def rotate(self, left=False, right=False):
         if left:
@@ -101,6 +123,12 @@ class AbstractTank:
     def bounce(self):
         self.v = -self.v
         self.move()
+        self.nya_until = time.time() + 0.5
+        now = time.time()
+        if now - self.last_bounce > 0.1:
+            random.choice(BOUNCE_SOUND).play()
+            self.last_bounce_sound = now
+
 
     def draw(self, win):
         blit_rotate_center(win, self.img, (self.x, self.y), self.angle)
@@ -133,6 +161,7 @@ class PlayerTank(AbstractTank):
 
         self.timer_flash_color = (255, 255, 255)
         self.timer_flash_until = 0
+
 
 # Player inputs
 def move_player(tank):
@@ -176,11 +205,19 @@ def draw(win, tank):
     win.blit(FINISH, FINISH_POS)
     win.blit(TRACK_LIMIT, (0, 0))
     tank.draw(win)
-    pygame.draw.rect(win, (0, 0, 0), (5, 5, 140, 140))
-    pygame.draw.rect(win, (255, 255, 255), (5, 5, 140, 140), 2)
-    pygame.draw.rect(win, (0, 0, 0), (810, 10, 920, 40))
+    pygame.draw.rect(win, DARK, (5, 5, 140, 140))
+    pygame.draw.rect(win, WHITE, (5, 5, 140, 140), 2)
+    pygame.draw.rect(win, DARK, (810, 10, 920, 40))
     draw_timer(win, tank)
-    pygame.draw.rect(win, (255, 255, 255), (810, 10, 200, 40), 2)
+    pygame.draw.rect(win, WHITE, (810, 10, 200, 40), 2)
+
+    shake_x = random.randint(-2, 2) if player.last_bounce_sound > time.time() - 0.1 else 0
+    shake_y = random.randint(-2, 2) if player.last_bounce_sound > time.time() - 0.1 else 0
+    win.blit(TRACK, (shake_x, shake_y))
+
+    if time.time() < player.nya_until:
+        txt = FONT2.render("NYA~!", True, ( 120, 170, 230))
+        win.blit(txt, (player.x + 10, player.y + 20))
 
     y = 6
 
@@ -199,7 +236,7 @@ def draw(win, tank):
     for i, sector_time in enumerate(tank.current_sectors):
         color = WHITE
         if i< len(tank.best_sectors):
-            color = GREEN if sector_time<= tank.best_sectors[i] else YELLOW
+            color = GREEN and random.choice(FINISH_SOUND).play() if sector_time<= tank.best_sectors[i] else YELLOW
         
         txt = FONT.render(f"S{i+1}: {sector_time:.2f}s", True, color)
         win.blit(txt, (10, y))

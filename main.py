@@ -49,6 +49,10 @@ FINISH = pygame.transform.rotate(pygame.image.load("finish.png"), 65)
 FINISH_MASK = pygame.mask.from_surface(FINISH)
 FINISH_POS = (556, 410)
 
+TREES = pygame.image.load("trees.png")
+LAKE = pygame.transform.rotate(pygame.image.load("lake.png"), 20)
+FIELD = scale_image(pygame.image.load("field.png"), 0.3)
+
 
 # Checkpoints (in order)
 CHECKPOINTS = [
@@ -217,10 +221,12 @@ def draw(win, tank):
     win.blit(TRACK, (shake_x, shake_y))
     win.blit(FINISH, FINISH_POS)
     win.blit(TRACK_LIMIT, (0, 0))
-
+    win.blit(TREES, (800, 380))
+    win.blit(LAKE, (-77, 310))
     pygame.draw.rect(win, DARK, (5, 5, 140, 140))
     pygame.draw.rect(win, WHITE, (5, 5, 140, 140), 2)
     pygame.draw.rect(win, DARK, (810, 10, 920, 40))
+    win.blit(FIELD, (100, 70))
     draw_timer(win, tank)
     pygame.draw.rect(win, WHITE, (810, 10, 200, 40), 2)
 
@@ -356,7 +362,6 @@ while running:
         player.lap_start_time = now
         player.sector_start_time = now
         player.on_zone = True
-        print(f"LAP {player.lap}")
 
     draw(WIN, player)
 

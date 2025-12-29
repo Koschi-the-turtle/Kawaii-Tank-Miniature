@@ -1,2 +1,2 @@
 # Kawaii-Tank-Miniature
-some random ahh racing game but with meowing tanks type shi
+Download the zip file and unzip, then simply launch "main.exe"

@@ -2,28 +2,40 @@ import pygame
 import math
 import time
 import random
-from Utils import scale_image, blit_rotate_center
-
 pygame.init()
 
 pygame.mixer.init()
 
+def scale_image(img, factor):
+    size = round(img.get_width() * factor), round(img.get_height() * factor)
+    return pygame.transform.scale(img, size)
+
+def blit_rotate_center(win, image, TLeft, angle):
+    rotated_image = pygame.transform.rotate(image, angle)
+    new_rect = rotated_image.get_rect(center = image.get_rect(topleft = TLeft).center)
+    win.blit(rotated_image, new_rect.topleft)
+
+pygame.mixer.music.load("sound/Grand-Symphony.mp3")
+pygame.mixer.music.set_volume(0.2)
+
 BOUNCE_SOUND = [
-    pygame.mixer.Sound("collision_sound1.mp3"),
-    pygame.mixer.Sound("collision_sound2.mp3"),
-    pygame.mixer.Sound("collision_sound3.mp3"),
+    pygame.mixer.Sound("sound/collision_sound1.mp3"),
+    pygame.mixer.Sound("sound/collision_sound2.mp3"),
+    pygame.mixer.Sound("sound/collision_sound3.mp3"),
+    pygame.mixer.Sound("sound/collision_sound4.mp3")
 ]
 
 FINISH_SOUND = [
-    pygame.mixer.Sound("finish_sound1.mp3"),
-    pygame.mixer.Sound("finish_sound2.mp3"),
-    pygame.mixer.Sound("finish_sound3.mp3"),
+    pygame.mixer.Sound("sound/finish_sound1.mp3"),
+    pygame.mixer.Sound("sound/finish_sound2.mp3"),
+    pygame.mixer.Sound("sound/finish_sound3.mp3"),
+    pygame.mixer.Sound("sound/finish_sound4.mp3"),
 ]
 
 for s in BOUNCE_SOUND:
-    s.set_volume(0.7)
+    s.set_volume(0.8)
 for s in FINISH_SOUND:
-    s.set_volume(0.4)
+    s.set_volume(0.6)
 
 
 
@@ -37,29 +49,31 @@ WHITE = (255, 245, 252)
 DARK = (10, 5, 10)
 
 # load track and limits
-TRACK = scale_image(pygame.image.load("track.png"), 1.5)
+TRACK = scale_image(pygame.image.load("environment/track.png"), 1.5)
 
-PLAYABLE_LIMIT = scale_image(pygame.image.load("playable-border.png"), 1.5)
+PLAYABLE_LIMIT = scale_image(pygame.image.load("environment/playable-border.png"), 1.5)
 PLAYABLE_LIMIT_MASK = pygame.mask.from_surface(PLAYABLE_LIMIT)
 
-TRACK_LIMIT = scale_image(pygame.image.load("track-border.png"), 1.5)
+TRACK_LIMIT = scale_image(pygame.image.load("environment/track-border.png"), 1.5)
 TRACK_LIMIT_MASK = pygame.mask.from_surface(TRACK_LIMIT)
 
-FINISH = pygame.transform.rotate(pygame.image.load("finish.png"), 65)
+FINISH = pygame.transform.rotate(pygame.image.load("environment/finish.png"), 65)
 FINISH_MASK = pygame.mask.from_surface(FINISH)
 FINISH_POS = (556, 410)
 
-TREES = pygame.image.load("trees.png")
-LAKE = pygame.transform.rotate(pygame.image.load("lake.png"), 20)
-FIELD = scale_image(pygame.image.load("field.png"), 0.3)
+TREES = pygame.image.load("environment/trees.png")
+LAKE = pygame.transform.rotate(pygame.image.load("environment/lake.png"), 20)
+FIELD = scale_image(pygame.image.load("environment/field.png"), 0.3)
+COUNTER = pygame.transform.rotate(pygame.image.load("environment/counter.png"), -30)
+MENUBG = scale_image(pygame.image.load("environment/menu_background.png"), 1.5)
 
 
 # Checkpoints (in order)
 CHECKPOINTS = [
-    (scale_image(pygame.image.load("finish.png"), 1.5), (250, 200)),
-    (scale_image(pygame.image.load("finish.png"), 1.5), (270, 465)),
-    (scale_image(pygame.image.load("finish.png"), 1.5), (160, 150)),
-    (scale_image(pygame.image.load("finish.png"), 1.5), (760, 160)),
+    (scale_image(pygame.image.load("environment/finish.png"), 1.5), (250, 200)),
+    (scale_image(pygame.image.load("environment/finish.png"), 1.5), (270, 465)),
+    (scale_image(pygame.image.load("environment/finish.png"), 1.5), (160, 150)),
+    (scale_image(pygame.image.load("environment/finish.png"), 1.5), (760, 160)),
 ]
 
 CHECKPOINT_MASKS = [
@@ -67,29 +81,139 @@ CHECKPOINT_MASKS = [
 ]
 
 # Load Tanks (and other...)
-KPFPZ70 = scale_image(pygame.image.load("KpfPz-70.png"), 0.07)
-TIGERH1 = scale_image(pygame.image.load("TigerH1.png"), 0.07)
-M48A1 = scale_image(pygame.image.load("M48A1-Pitbull.png"), 0.07)
-ABRAM = scale_image(pygame.image.load("Abram.png"), 0.07)
-M4SHERMAN = scale_image(pygame.image.load("M4Sherman.png"), 0.07)
-DAVINCI = scale_image(pygame.image.load("DaVinciConcept.png"), 0.07)
-TIGER2 = scale_image(pygame.image.load("TigerII.png"), 0.07)
-T62 = scale_image(pygame.image.load("T-62.png"), 0.07)
-MAUS = scale_image(pygame.image.load("Maus.png"), 0.07)
-PANZERIV = scale_image(pygame.image.load("PanzerIV.png"), 0.07)
-THOMAS = scale_image(pygame.image.load("Thomas.png"), 0.07)
-LEOPARD1 = scale_image(pygame.image.load("Leopard1.png"), 0.07)
-T90A = scale_image(pygame.image.load("T-90A.png"), 0.07)
-LEOPARD2 = scale_image(pygame.image.load("Leopard2.png"), 0.07)
-MULTIPLA = scale_image(pygame.image.load("1000tipla.png"), 0.07)
+KPFPZ70 = scale_image(pygame.image.load("tanks/KpfPz-70.png"), 0.07)
+TIGERH1 = scale_image(pygame.image.load("tanks/TigerH1.png"), 0.07)
+M48A1 = scale_image(pygame.image.load("tanks/M48A1-Pitbull.png"), 0.07)
+M1ABRAMS = scale_image(pygame.image.load("tanks/M1-Abrams.png"), 0.07)
+M4SHERMAN = scale_image(pygame.image.load("tanks/M4Sherman.png"), 0.07)
+DAVINCI = scale_image(pygame.image.load("tanks/DaVinciConcept.png"), 0.07)
+TIGER2 = scale_image(pygame.image.load("tanks/TigerII.png"), 0.07)
+T62 = scale_image(pygame.image.load("tanks/T-62.png"), 0.07)
+MAUS = scale_image(pygame.image.load("tanks/Maus.png"), 0.07)
+PANZERIV = scale_image(pygame.image.load("tanks/PanzerIV.png"), 0.07)
+THOMAS = scale_image(pygame.image.load("tanks/Thomas.png"), 0.07)
+LEOPARD1 = scale_image(pygame.image.load("tanks/Leopard1.png"), 0.07)
+T90A = scale_image(pygame.image.load("tanks/T-90A.png"), 0.07)
+LEOPARD2 = scale_image(pygame.image.load("tanks/Leopard2.png"), 0.07)
+MULTIPLA = scale_image(pygame.image.load("tanks/1000tipla.png"), 0.07)
+
+# Load Tanks again but for the preview in the menu
+KPFPZ70PREVIEW = scale_image(pygame.image.load("preview/KpfPz-70preview.png"), 0.6)
+TIGERH1PREVIEW = scale_image(pygame.image.load("preview/Tiger H1preview.png"), 0.6)
+M48A1PREVIEW = scale_image(pygame.image.load("preview/M48-A1preview.png"), 0.6)
+M1ABRAMSPREVIEW = scale_image(pygame.image.load("preview/M1-Abramspreview.png"), 0.6)
+M4SHERMANPREVIEW = scale_image(pygame.image.load("preview/M4 Shermanpreview.png"), 0.6)
+DAVINCIPREVIEW = scale_image(pygame.image.load("preview/Da Vinci conceptpreview.png"), 0.6)
+TIGER2PREVIEW = scale_image(pygame.image.load("preview/Tiger IIpreview.png"), 0.6)
+T62PREVIEW = scale_image(pygame.image.load("preview/T-62preview.png"), 0.6)
+MAUSPREVIEW = scale_image(pygame.image.load("preview/Mauspreview.png"), 0.6)
+PANZERIVPREVIEW = scale_image(pygame.image.load("preview/Panzer IVpreview.png"), 0.6)
+THOMASPREVIEW = scale_image(pygame.image.load("preview/Thomaspreview.png"), 0.6)
+LEOPARD1PREVIEW = scale_image(pygame.image.load("preview/Leopard1preview.png"), 0.6)
+T90APREVIEW = scale_image(pygame.image.load("preview/T-90Apreview.png"), 0.6)
+LEOPARD2PREVIEW = scale_image(pygame.image.load("preview/Leopard2preview.png"), 0.6)
+MULTIPLAPREVIEW = scale_image(pygame.image.load("preview/1000tiplapreview.png"), 0.6)
 
 # Window
 WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Kawaii Tank Miniature !")
 
-FPS = 60
+FPS = 90
 clock = pygame.time.Clock()
+
+STATE_MENU = "menu"
+STATE_GAME = "game"
+game_state = STATE_MENU
+pygame.mixer.music.play(-1)
+selected_tank = 0
+player = None
+
+TANKS = [
+    {"name": "KpfPz-70",
+     "img": KPFPZ70PREVIEW,
+     "imgmini":KPFPZ70,
+     },
+     {"name": "Tiger H1",
+     "img": TIGERH1PREVIEW,
+     "imgmini": TIGERH1,
+     },
+     {"name": "M48 A1",
+     "img": M48A1PREVIEW,
+     "imgmini": M48A1,     
+     },
+     {"name": "M1-Abrams",
+     "img": M1ABRAMSPREVIEW,
+     "imgmini": M1ABRAMS,
+     },
+     {"name": "M4 Sherman",
+     "img": M4SHERMANPREVIEW,
+     "imgmini": M4SHERMAN,
+     },
+     {"name": "Da Vinci's concept",
+     "img": DAVINCIPREVIEW,
+     "imgmini": DAVINCI,
+     },
+     {"name": "Tiger 2",
+     "img": TIGER2PREVIEW,
+     "imgmini": TIGER2,
+     },
+     {"name": "T-62",
+     "img": T62PREVIEW,
+     "imgmini": T62,
+     },
+     {"name": "Maus",
+     "img": MAUSPREVIEW,
+     "imgmini": MAUS,
+     },
+     {"name": "Panzer IV",
+     "img": PANZERIVPREVIEW,
+     "imgmini": PANZERIV,
+     },
+     {"name": "Thomas the train",
+     "img": THOMASPREVIEW,
+     "imgmini":THOMAS,
+     },
+     {"name": "Leopard 1",
+     "img": LEOPARD1PREVIEW,
+     "imgmini": LEOPARD1,
+     },
+     {"name": "T-90 A",
+     "img": T90APREVIEW,
+     "imgmini": T90A,
+     },
+     {"name": "Leopard 2",
+     "img": LEOPARD2PREVIEW,
+     "imgmini": LEOPARD2,
+     },
+     {"name": "1000tipla",
+     "img": MULTIPLAPREVIEW,
+     "imgmini": MULTIPLA,
+     },
+]
+
+def handle_menu_input():
+    global selected_tank, game_state, player
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_LEFT]:
+        selected_tank = (selected_tank - 1)% len(TANKS)
+        pygame.mixer.Sound("sound/collision_sound1.mp3").play()
+        pygame.time.wait(150)
+
+    if keys[pygame.K_RIGHT]:
+        selected_tank = (selected_tank + 1) % len(TANKS)
+        pygame.time.wait(150)
+        pygame.mixer.Sound("sound/collision_sound2.mp3").play()
+
+    if keys[pygame.K_RETURN]:
+        t = TANKS[selected_tank]
+        player = PlayerTankCustom(t)
+        pygame.mixer.Sound("sound/finish_sound1.mp3").play()
+        game_state = STATE_GAME
+
+    
+
 
 # Tank specs, movements and collision
 class AbstractTank:
@@ -174,6 +298,11 @@ class PlayerTank(AbstractTank):
         self.last_bounce_sound = 0
 
         self.sector_sound_played = False
+
+class PlayerTankCustom(PlayerTank):
+    def __init__(self, tank):
+        super().__init__()
+        self.img = tank["imgmini"]
         
 
 
@@ -195,6 +324,29 @@ def move_player(tank):
 
     if not moved:
         tank.reduce_speed()
+
+def draw_menu(win):
+    win.blit(MENUBG, (-15, 0))
+
+    t = TANKS[selected_tank]
+    preview = scale_image(t["img"], 1)
+    win.blit(preview, (WIDTH//2 - 180, 130))
+
+    title = FONT2.render("Select your tank!", True, (70, 240, 170))
+    win.blit(title, (WIDTH//2 - title.get_width()//2, 90))
+
+    name = FONT2.render(t["name"], True, PINK)
+    win.blit(name, (WIDTH//2 - name.get_width()//2 + 10, 340))
+
+    hint = FONT.render("use right and left arrows to switch", True, (240, 190, 70))
+    win.blit(hint, (WIDTH//2 - hint.get_width()//2 + 10, 400))
+    
+    hint2 = FONT.render("press enter to start", True, (240, 190, 70))
+    win.blit(hint2, (WIDTH//2 - hint2.get_width()//2 + 10, 430))
+
+
+    pygame.display.update()
+
 
 def draw_timer(win, player):
     now = time.time()
@@ -226,10 +378,12 @@ def draw(win, tank):
     pygame.draw.rect(win, DARK, (5, 5, 140, 140))
     pygame.draw.rect(win, WHITE, (5, 5, 140, 140), 2)
     pygame.draw.rect(win, DARK, (810, 10, 920, 40))
+    
     win.blit(FIELD, (100, 70))
+
     draw_timer(win, tank)
     pygame.draw.rect(win, WHITE, (810, 10, 200, 40), 2)
-
+    win.blit(COUNTER, (775, 20))
 
 
     if time.time() < player.nya_until:
@@ -265,7 +419,7 @@ def draw(win, tank):
     #for img, pos in CHECKPOINTS:
     #    win.blit(img, pos)
 
-    pygame.display.update()
+
 
 
 # Runnig loop
@@ -279,7 +433,14 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    move_player(player)
+
+    if game_state == STATE_MENU:
+        draw_menu(WIN)
+        handle_menu_input()
+    elif game_state == STATE_GAME:
+        move_player(player)
+        pygame.display.update()
+        draw(WIN, player)
 
     # Track limits
     if player.collide(PLAYABLE_LIMIT_MASK) is None:
@@ -362,7 +523,5 @@ while running:
         player.lap_start_time = now
         player.sector_start_time = now
         player.on_zone = True
-
-    draw(WIN, player)
 
 pygame.quit()
